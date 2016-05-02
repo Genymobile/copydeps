@@ -1,0 +1,14 @@
+librt.so.1
+libm.so.6
+libc.so.6
+libdl.so.2
+libpthread.so.0
+libX11.so.6
+ld-linux-x86-64.so.*
+libgcc_s.so.1
+libz.so.1
+libglib-2.0.so.0
+
+# Do not ship libGL, it depends on plugins and the user might have a different
+# one, for example if he is using an NVidia card
+libGL.so.1

@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+import argparse
+import fnmatch
+import os
+import shutil
+import subprocess
+import sys
+
+
+DESCRIPTION = """\
+Copy dependencies required by an executable to the specified dir
+"""
+
+
+def load_blacklist(filename):
+    with open(filename, 'rt') as f:
+        for line in f.readlines():
+            line = line.strip()
+            if not line or line[0] == '#':
+                continue
+            yield line
+
+
+def list_dependencies(executable):
+    out = subprocess.check_output(('ldd', executable))
+    for line in out.splitlines():
+        line = line.strip().decode('ascii')
+        # line can be one of:
+        # 1. linux-vdso.so.1 =>  (0x00007ffd6f3cd000)
+        # 2. libcrypto.so.1.0.0 => /home/agateau/tmp/genymotion/./libcrypto.so.1.0.0 (0x00007f5ea40b6000)
+        # 3. /lib64/ld-linux-x86-64.so.2 (0x0000562cf1094000)
+
+        if '=>  (' in line:
+            # Format #1, skip it
+            continue
+        tokens = line.split(' ')
+        if tokens[1] == '=>':
+            # Format #2
+            yield tokens[2]
+        else:
+            # Format #3
+            yield tokens[0]
+
+
+def is_blacklisted(dependency, blacklist):
+    name = os.path.basename(dependency)
+    for pattern in blacklist:
+        if fnmatch.fnmatch(name, pattern):
+            return True
+    return False
+
+
+def copy(dependency, destdir, dry_run=False):
+    destpath = os.path.join(destdir, os.path.basename(dependency))
+    if not os.path.exists(destpath):
+        print('Copying {}'.format(dependency))
+        if not dry_run:
+            shutil.copy(dependency, destpath)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.description = DESCRIPTION
+
+    parser.add_argument('-d', '--destdir',
+        help='Copy to DESTDIR, defaults to the executable dir', metavar='DESTDIR')
+
+    parser.add_argument('--exclude',
+        help='Do not copy files whose name matches a line from FILE', metavar='FILE')
+
+    parser.add_argument('-n', '--dry-run', action='store_true',
+        help='Simulate')
+
+    parser.add_argument('executable')
+
+    args = parser.parse_args()
+
+    if args.exclude:
+        blacklist = list(load_blacklist(args.exclude))
+    else:
+        blacklist = []
+
+    dependencies = list_dependencies(args.executable)
+
+    destdir = args.destdir or os.path.dirname(args.executable)
+
+    for dependency in dependencies:
+        if is_blacklisted(dependency, blacklist):
+            continue
+        copy(dependency, destdir, dry_run=args.dry_run)
+
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
+# vi: ts=4 sw=4 et
