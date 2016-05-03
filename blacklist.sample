@@ -7,7 +7,12 @@ libX11.so.6
 ld-linux-x86-64.so.*
 libgcc_s.so.1
 libz.so.1
+
+# Assume glib-related libs are installed
 libglib-2.0.so.0
+libgmodule-2.0.so.0
+libgobject-2.0.so.0
+libgthread-2.0.so.0
 
 # Do not ship libGL, it depends on plugins and the user might have a different
 # one, for example if he is using an NVidia card
