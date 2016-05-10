@@ -1,19 +1,31 @@
+# This is Linux dynamic loader
+ld-linux-x86-64.so.*
+
+#------------------------------------------------------------------------------
+# These libs are required by LSB 5.0 Common - Core
+# http://refspecs.linuxfoundation.org/LSB_5.0.0/LSB-Common/LSB-Common/requirements.html#TBL-CORELIB
 librt.so.1
+libdl.so.2
+libgcc_s.so.1
+libpthread.so.0
+libz.so.1
 libm.so.6
 libc.so.6
-libdl.so.2
-libpthread.so.0
-libX11.so.6
-ld-linux-x86-64.so.*
-libgcc_s.so.1
-libz.so.1
 
-# Assume glib-related libs are installed
+#------------------------------------------------------------------------------
+# These libs are required by LSB 5.0 Common - Desktop
+# http://refspecs.linuxfoundation.org/LSB_5.0.0/LSB-Common/LSB-Common/requirements.html#TBL-DESKTOPLIB
+
+## X11
+libX11.so.6
+
+## glib
 libglib-2.0.so.0
 libgmodule-2.0.so.0
 libgobject-2.0.so.0
 libgthread-2.0.so.0
 
+## libGL
 # Do not ship libGL, it depends on plugins and the user might have a different
 # one, for example if he is using an NVidia card
 libGL.so.1
