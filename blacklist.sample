@@ -1,4 +1,7 @@
 # This is Linux dynamic loader
+## 32 bit version
+ld-linux.so.*
+## 64 bit version
 ld-linux-x86-64.so.*
 
 #------------------------------------------------------------------------------
