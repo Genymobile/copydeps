@@ -15,6 +15,9 @@ libz.so.1
 libm.so.6
 libc.so.6
 
+## Shipping libstdc++ causes failure on machines with ATI graphic cards
+libstdc++.so.6
+
 #------------------------------------------------------------------------------
 # These libs are required by LSB 5.0 Common - Desktop
 # http://refspecs.linuxfoundation.org/LSB_5.0.0/LSB-Common/LSB-Common/requirements.html#TBL-DESKTOPLIB
