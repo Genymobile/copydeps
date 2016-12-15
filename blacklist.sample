@@ -1,9 +1,3 @@
-# This is Linux dynamic loader
-## 32 bit version
-ld-linux.so.*
-## 64 bit version
-ld-linux-x86-64.so.*
-
 #------------------------------------------------------------------------------
 # These libs are required by LSB 5.0 Common - Core
 # http://refspecs.linuxfoundation.org/LSB_5.0.0/LSB-Common/LSB-Common/requirements.html#TBL-CORELIB
