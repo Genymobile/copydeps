@@ -18,6 +18,16 @@ libstdc++.so.6
 
 ## X11
 libX11.so.6
+libXi.so.6
+libICE.so.6
+libSM.so.6
+libxcb.so.1
+libfreetype.so.6
+libfontconfig.so.1
+libXrender.so.1
+
+### This one is not in LSB 5.0 Common - Desktop, but it's X11 & xcb, so it has to be there
+libX11-xcb.so.1
 
 ## glib
 libglib-2.0.so.0
@@ -29,3 +39,6 @@ libgthread-2.0.so.0
 # Do not ship libGL, it depends on plugins and the user might have a different
 # one, for example if he is using an NVidia card
 libGL.so.1
+
+## Skip libxml2, it is mandatory and shipping it means including extra versions of libicu
+libxml2.so.2
