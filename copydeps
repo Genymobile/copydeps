@@ -143,13 +143,13 @@ class App:
 
     def run(self, binary_path):
         if self.dot_fp:
-            print('digraph {', file=self.dot_fp)
+            self.dot_fp.write('digraph {\n')
         binary = os.path.basename(binary_path)
         self.path_for_binary = list_soname_paths(binary_path)
         self.path_for_binary[binary] = binary_path
         self._traverse_tree(binary)
         if self.dot_fp:
-            print('}', file=self.dot_fp)
+            self.dot_fp.write('}\n')
 
     def _traverse_tree(self, binary):
         path = self.path_for_binary[binary]
@@ -172,14 +172,12 @@ class App:
             self._traverse_tree(soname)
 
     def _graph_blacklisted_dependency(self, binary, soname):
-        print('  "{}" {};'.format(soname, DOT_BLACKLISTED_ATTRS), \
-              file=self.dot_fp)
-        print('  "{}" -> "{}" {};' \
-              .format(binary, soname, DOT_BLACKLISTED_ATTRS), \
-              file=self.dot_fp)
+        self.dot_fp.write('  "{}" {};\n'.format(soname, DOT_BLACKLISTED_ATTRS))
+        self.dot_fp.write('  "{}" -> "{}" {};\n'
+                          .format(binary, soname, DOT_BLACKLISTED_ATTRS))
 
     def _graph_dependency(self, binary, soname):
-        print('  "{}" -> "{}";'.format(binary, soname), file=self.dot_fp)
+        self.dot_fp.write('  "{}" -> "{}";\n'.format(binary, soname))
 
 
 def main():
