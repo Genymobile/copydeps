@@ -2,19 +2,24 @@
 
 ## Introduction
 
-copydeps is a tool to analyze and copy the dependencies of a Linux binary. It
-is useful to create light, self-contained installers.
+copydeps is a tool to analyze and copy the dependencies of ELF binaries, as
+used on Linux and other UNIX systems. It is useful to create light,
+self-contained installers.
 
 It works on both executables and libraries.
 
 ## Requirements
 
-Python 3
+- A Linux system (copydeps might work on BSD systems, but this has not been
+  tested)
+- Python 3
+- readelf
+- ldd
 
 ## Installation
 
-Put `copydeps` somewhere in your PATH, or just run it by using the full path to
-it.
+Install with `./setup.py install` or just run `copydeps.py` from the source
+tree.
 
 ## Usage
 
@@ -40,7 +45,7 @@ option.  If you just want to look at the dependency diagram, add the
 
     copydeps --exclude your/blacklist /path/to/foo --dry-run --dot foo.dot
 
-You can now view the diagram using any Graphviz viewer, such as [xdot][]
+You can now view the diagram using any Graphviz viewer, such as [xdot][].
 
 As an example, here is the dependency diagram of Qt5QuickControls2:
 
