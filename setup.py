@@ -11,7 +11,7 @@ setup(
     author_email='opensource@genymobile.com',
     license=copydeps.__license__,
     platforms=['Linux'],
-    url='http://github.com/genymobile/copydeps',
+    url='https://github.com/genymobile/copydeps',
     py_modules=['copydeps'],
     entry_points={
         'console_scripts': [
