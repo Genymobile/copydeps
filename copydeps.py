@@ -8,6 +8,10 @@ import subprocess
 import sys
 
 
+__appname__ = 'copydeps'
+__version__ = '1.0.0'
+__license__ = 'Apache 2.0'
+
 DESCRIPTION = """\
 Copy dependencies required by an executable to the specified dir. Dependencies
 can be blacklisted. If a library is blacklisted then all its dependencies are
