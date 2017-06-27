@@ -132,7 +132,7 @@ def is_blacklisted(dependency, blacklist):
 def copy(dependency, destdir):
     destpath = os.path.join(destdir, os.path.basename(dependency))
     if not os.path.exists(destpath):
-        print('Copying {}'.format(dependency))
+        print('Copying {} to {}'.format(dependency, destpath))
         shutil.copy(dependency, destpath)
 
 
@@ -209,7 +209,15 @@ def main():
 
     blacklist = DEFAULT_BLACKLIST
     if args.exclude:
+        if not os.path.isfile(args.exclude):
+            parser.error('"{}" is not a file'.format(args.exclude))
         blacklist.extend(load_blacklist(args.exclude))
+
+    if args.destdir and not os.path.isdir(args.destdir):
+        parser.error('"{}" is not a directory'.format(args.destdir))
+
+    if not os.path.isfile(args.executable):
+        parser.error('"{}" is not a file'.format(args.executable))
 
     destdir = args.destdir or os.path.dirname(args.executable)
 
@@ -219,11 +227,18 @@ def main():
 
     dot_fp = None
     if args.dot:
-        dot_fp = open(args.dot, 'w')
+        try:
+            dot_fp = open(args.dot, 'w')
+        except IOError as exc:
+            parser.error('Failed to write to "{}": {}'.format(args.dot, exc))
 
     app = App(blacklist=blacklist, destdir=destdir, dry_run=args.dry_run,
               dot_fp=dot_fp)
-    app.run(args.executable)
+    try:
+        app.run(args.executable)
+    except IOError as exc:
+        print(exc, file=sys.stderr)
+        sys.exit(1)
 
     if dot_fp:
         dot_fp.close()
