@@ -7,6 +7,8 @@ import shutil
 import subprocess
 import sys
 
+from elftools.elf.elffile import ELFFile
+
 
 __appname__ = 'copydeps'
 __version__ = '1.0.0'
@@ -69,56 +71,14 @@ def list_soname_paths(executable):
 
 def list_dependencies(binary):
     """Return the list of sonames this binary *directly* depends on"""
-
-    # We use `readelf` to get the soname list. Its output looks like this:
-    #
-    # Dynamic section at offset 0xf79d0 contains 34 entries:
-    #   Tag        Type                         Name/Value
-    #  0x0000000000000001 (NEEDED)             Shared library: [libz.so.1]
-    #  0x0000000000000001 (NEEDED)             Shared library: [libminicrypt.so.1]
-    #  0x0000000000000001 (NEEDED)             Shared library: [libQt5Widgets.so.5]
-    #  0x0000000000000001 (NEEDED)             Shared library: [libQt5Gui.so.5]
-    #  0x0000000000000001 (NEEDED)             Shared library: [libQt5Network.so.5]
-    #  0x0000000000000001 (NEEDED)             Shared library: [libQt5Script.so.5]
-    #  0x0000000000000001 (NEEDED)             Shared library: [libQt5Sql.so.5]
-    #  0x0000000000000001 (NEEDED)             Shared library: [libQt5Core.so.5]
-    #  0x0000000000000001 (NEEDED)             Shared library: [libpthread.so.0]
-    #  0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]
-    #  0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]
-    #  0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
-    #  0x000000000000000f (RPATH)              Library rpath: [$ORIGIN:/home/buildbot/Qt5.4.1/5.4/gcc_64:/home/buildbot/Qt5.4.1/5.4/gcc_64/lib]
-    #  0x000000000000000c (INIT)               0x40fef0
-    #  0x000000000000000d (FINI)               0x4ca078
-    #  0x0000000000000019 (INIT_ARRAY)         0x6f51c0
-    #  0x000000000000001b (INIT_ARRAYSZ)       296 (bytes)
-    #  0x000000006ffffef5 (GNU_HASH)           0x400298
-    #  0x0000000000000005 (STRTAB)             0x404ee8
-    #  0x0000000000000006 (SYMTAB)             0x400ac0
-    #  0x000000000000000a (STRSZ)              24298 (bytes)
-    #  0x000000000000000b (SYMENT)             24 (bytes)
-    #  0x0000000000000015 (DEBUG)              0x0
-    #  0x0000000000000003 (PLTGOT)             0x6f7fe8
-    #  0x0000000000000002 (PLTRELSZ)           14208 (bytes)
-    #  0x0000000000000014 (PLTREL)             RELA
-    #  0x0000000000000017 (JMPREL)             0x40c770
-    #  0x0000000000000007 (RELA)               0x40b450
-    #  0x0000000000000008 (RELASZ)             4896 (bytes)
-    #  0x0000000000000009 (RELAENT)            24 (bytes)
-    #  0x000000006ffffffe (VERNEED)            0x40b380
-    #  0x000000006fffffff (VERNEEDNUM)         4
-    #  0x000000006ffffff0 (VERSYM)             0x40add2
-    #  0x0000000000000000 (NULL)               0x0
-    #
-    # We want the filenames in the '(NEEDED)' lines
-
-    out = subprocess.check_output(('readelf', '--dynamic', '--wide', binary))
-
-    regex = re.compile(r'\(NEEDED\).+\[(.+)\]')
-    for line in out.splitlines():
-        line = line.strip().decode('ascii')
-        match = regex.search(line)
-        if match:
-            yield match.group(1)
+    with open(binary, 'rb') as f:
+        elf = ELFFile(f)
+        section = elf.get_section_by_name('.dynamic')
+        if section is None:
+            return
+        for tag in section.iter_tags():
+            if tag.entry.d_tag == 'DT_NEEDED':
+                yield tag.needed
 
 
 def is_blacklisted(dependency, blacklist):
