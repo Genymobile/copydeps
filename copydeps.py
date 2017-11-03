@@ -26,6 +26,17 @@ DEFAULT_BLACKLIST = ['ld-linux.so.*', 'ld-linux-x86-64.so.*']
 DOT_BLACKLISTED_ATTRS = '[color="gray" fontcolor="gray"]'
 
 
+class MissingLibrariesError(Exception):
+    def __init__(self, libs):
+        self.libs = libs
+
+
+def printerr(*args, **kwargs):
+    kwargs_ = dict(kwargs)
+    kwargs_['file'] = sys.stderr
+    print(*args, **kwargs_)
+
+
 def load_blacklist(filename):
     with open(filename, 'rt') as f:
         for line in f.readlines():
@@ -45,6 +56,7 @@ def list_soname_paths(executable):
 def parse_ldd_output(ldd_output):
     """Return a dict of the form soname => path"""
     dct = {}
+    missing_libs = []
     for line in ldd_output.splitlines():
         line = line.strip().decode('ascii')
         # line can be one of:
@@ -66,10 +78,13 @@ def parse_ldd_output(ldd_output):
         soname = tokens[0]
 
         # Handle the case where a library has not been found
-        assert tokens[2:4] != ['not', 'found'], 'No path for {}'.format(soname)
+        if tokens[2:4] == ['not', 'found']:
+            missing_libs.append(soname)
 
         path = tokens[2]
         dct[soname] = path
+    if missing_libs:
+        raise MissingLibrariesError(missing_libs)
     return dct
 
 
@@ -200,8 +215,12 @@ def main():
               dot_fp=dot_fp)
     try:
         app.run(args.executable)
+    except MissingLibrariesError as exc:
+        printerr('Error, missing libraries:')
+        for lib in exc.libs:
+            printerr('- {}'.format(lib))
     except IOError as exc:
-        print(exc, file=sys.stderr)
+        printerr(exc)
         sys.exit(1)
 
     if dot_fp:
