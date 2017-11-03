@@ -64,24 +64,28 @@ def parse_ldd_output(ldd_output):
         # 2. libcrypto.so.1.0.0 => /home/agateau/tmp/genymotion/./libcrypto.so.1.0.0 (0x00007f5ea40b6000)
         # 3. /lib64/ld-linux-x86-64.so.2 (0x0000562cf1094000)
 
+        if not line:
+            continue
         if '=>  (' in line:
             # Format #1, skip it
             continue
-        if '=>' not in line:
-            # Format #3, skip it. Only Linux dynamic loaders seem to use it
-            continue
+        if '=>' in line:
+            # Format #2
+            tokens = line.split(' ', 3)
+            assert tokens[1] == '=>', 'Unexpected line format: {}'.format(line)
 
-        # Format #2
-        tokens = line.split(' ', 3)
-        assert tokens[1] == '=>', 'Unexpected line format: {}'.format(line)
+            soname = tokens[0]
 
-        soname = tokens[0]
+            # Handle the case where a library has not been found
+            if tokens[2:4] == ['not', 'found']:
+                missing_libs.append(soname)
 
-        # Handle the case where a library has not been found
-        if tokens[2:4] == ['not', 'found']:
-            missing_libs.append(soname)
+            path = tokens[2]
+        else:
+            # Format #3, set path to the soname
+            soname = line.split(' ')[0]
+            path = soname
 
-        path = tokens[2]
         dct[soname] = path
     if missing_libs:
         raise MissingLibrariesError(missing_libs)
