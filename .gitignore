@@ -3,3 +3,4 @@ build
 dist
 copydeps.egg-info
 .*.swp
+.cache

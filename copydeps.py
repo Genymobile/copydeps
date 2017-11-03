@@ -36,11 +36,16 @@ def load_blacklist(filename):
 
 
 def list_soname_paths(executable):
-    """Return a dict of the form soname => path"""
+    """Return a dict of the form soname => path for all the dependency of
+    the executable"""
     out = subprocess.check_output(('ldd', executable))
+    return parse_ldd_output(out)
 
+
+def parse_ldd_output(ldd_output):
+    """Return a dict of the form soname => path"""
     dct = {}
-    for line in out.splitlines():
+    for line in ldd_output.splitlines():
         line = line.strip().decode('ascii')
         # line can be one of:
         # 1. linux-vdso.so.1 =>  (0x00007ffd6f3cd000)
