@@ -13,6 +13,7 @@ setup(
     platforms=['Linux'],
     url='https://github.com/genymobile/copydeps',
     py_modules=['copydeps'],
+    install_requires=['pyelftools'],
     entry_points={
         'console_scripts': [
             'copydeps = copydeps:main',

@@ -13,7 +13,7 @@ It works on both executables and libraries.
 - A Linux system (copydeps might work on BSD systems, but this has not been
   tested)
 - Python 3
-- readelf
+- [pyelftools](https://github.com/eliben/pyelftools)
 - ldd
 
 ## Installation
