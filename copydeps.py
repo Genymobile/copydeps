@@ -32,9 +32,8 @@ class MissingLibrariesError(Exception):
 
 
 def printerr(*args, **kwargs):
-    kwargs_ = dict(kwargs)
-    kwargs_['file'] = sys.stderr
-    print(*args, **kwargs_)
+    kwargs['file'] = sys.stderr
+    print(*args, **kwargs)
 
 
 def load_blacklist(filename):
