@@ -26,6 +26,16 @@ DEFAULT_BLACKLIST = ['ld-linux.so.*', 'ld-linux-x86-64.so.*']
 DOT_BLACKLISTED_ATTRS = '[color="gray" fontcolor="gray"]'
 
 
+class MissingLibrariesError(Exception):
+    def __init__(self, libs):
+        self.libs = libs
+
+
+def printerr(*args, **kwargs):
+    kwargs['file'] = sys.stderr
+    print(*args, **kwargs)
+
+
 def load_blacklist(filename):
     with open(filename, 'rt') as f:
         for line in f.readlines():
@@ -36,35 +46,48 @@ def load_blacklist(filename):
 
 
 def list_soname_paths(executable):
-    """Return a dict of the form soname => path"""
+    """Return a dict of the form soname => path for all the dependency of
+    the executable"""
     out = subprocess.check_output(('ldd', executable))
+    return parse_ldd_output(out)
 
+
+def parse_ldd_output(ldd_output):
+    """Return a dict of the form soname => path"""
     dct = {}
-    for line in out.splitlines():
+    missing_libs = []
+    for line in ldd_output.splitlines():
         line = line.strip().decode('ascii')
         # line can be one of:
         # 1. linux-vdso.so.1 =>  (0x00007ffd6f3cd000)
         # 2. libcrypto.so.1.0.0 => /home/agateau/tmp/genymotion/./libcrypto.so.1.0.0 (0x00007f5ea40b6000)
         # 3. /lib64/ld-linux-x86-64.so.2 (0x0000562cf1094000)
 
+        if not line:
+            continue
         if '=>  (' in line:
             # Format #1, skip it
             continue
-        if '=>' not in line:
-            # Format #3, skip it. Only Linux dynamic loaders seem to use it
-            continue
+        if '=>' in line:
+            # Format #2
+            tokens = line.split(' ', 3)
+            assert tokens[1] == '=>', 'Unexpected line format: {}'.format(line)
 
-        # Format #2
-        tokens = line.split(' ', 3)
-        assert tokens[1] == '=>', 'Unexpected line format: {}'.format(line)
+            soname = tokens[0]
 
-        soname = tokens[0]
+            # Handle the case where a library has not been found
+            if tokens[2:4] == ['not', 'found']:
+                missing_libs.append(soname)
 
-        # Handle the case where a library has not been found
-        assert tokens[2:4] != ['not', 'found'], 'No path for {}'.format(soname)
+            path = tokens[2]
+        else:
+            # Format #3, set path to the soname
+            soname = line.split(' ')[0]
+            path = soname
 
-        path = tokens[2]
         dct[soname] = path
+    if missing_libs:
+        raise MissingLibrariesError(missing_libs)
     return dct
 
 
@@ -195,8 +218,12 @@ def main():
               dot_fp=dot_fp)
     try:
         app.run(args.executable)
+    except MissingLibrariesError as exc:
+        printerr('Error, missing libraries:')
+        for lib in exc.libs:
+            printerr('- {}'.format(lib))
     except IOError as exc:
-        print(exc, file=sys.stderr)
+        printerr(exc)
         sys.exit(1)
 
     if dot_fp:
