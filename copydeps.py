@@ -17,6 +17,9 @@ DESCRIPTION = """\
 Copy dependencies required by an executable to the specified dir. Dependencies
 can be blacklisted. If a library is blacklisted then all its dependencies are
 blacklisted unless a non-blacklisted library depend on them.
+
+Can be used to inspect the dependencies of an executable through the generated
+dependency graph.
 """
 
 # Black list Linux dynamic loaders by default because they do not fit in the
