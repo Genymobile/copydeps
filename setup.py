@@ -1,12 +1,22 @@
 #!/usr/bin/env python3
+import os
 from setuptools import setup
 
 import copydeps
+
+
+def load_readme():
+    path = os.path.join(os.path.dirname(__file__), 'README.md')
+    with open(path) as f:
+        return f.read()
+
 
 setup(
     name=copydeps.__appname__,
     version=copydeps.__version__,
     description=copydeps.DESCRIPTION,
+    long_description=load_readme(),
+    long_description_content_type='text/markdown',
     author='Genymobile',
     author_email='opensource@genymobile.com',
     license=copydeps.__license__,
