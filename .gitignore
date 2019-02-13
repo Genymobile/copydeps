@@ -4,3 +4,5 @@ dist
 copydeps.egg-info
 .*.swp
 .cache
+.tox/
+.pytest_cache/
