@@ -10,7 +10,7 @@ Package and run tests
 
     tox --recreate --skip-missing-interpreters
 
-Check the content of qpropgen.egg-info/PKG-INFO.
+Check the content of copydeps.egg-info/PKG-INFO.
 
 Tag
 
