@@ -15,8 +15,8 @@ Check the content of qpropgen.egg-info/PKG-INFO.
 Tag
 
     git tag -a $version -m "Releasing $version"
-
-    git push git push --tags
+    git push
+    git push --tags
 
 Upload
 
