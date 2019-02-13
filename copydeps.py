@@ -10,8 +10,7 @@ from elftools.elf.elffile import ELFFile
 
 
 __appname__ = 'copydeps'
-__version__ = '1.0.0'
-__license__ = 'Apache 2.0'
+__version__ = '1.1.0'
 
 DESCRIPTION = """\
 Copy dependencies required by an executable to the specified dir. Dependencies
