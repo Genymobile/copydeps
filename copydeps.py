@@ -216,6 +216,7 @@ def main():
         except IOError as exc:
             parser.error('Failed to write to "{}": {}'.format(args.dot, exc))
 
+    exit_code = 0
     app = App(blacklist=blacklist, destdir=destdir, dry_run=args.dry_run,
               dot_fp=dot_fp)
     try:
@@ -224,14 +225,15 @@ def main():
         printerr('Error, missing libraries:')
         for lib in exc.libs:
             printerr('- {}'.format(lib))
+        exit_code = 1
     except IOError as exc:
         printerr(exc)
-        sys.exit(1)
+        exit_code = 1
 
     if dot_fp:
         dot_fp.close()
 
-    return 0
+    return exit_code
 
 
 if __name__ == '__main__':
