@@ -146,6 +146,8 @@ class App:
             if is_blacklisted(soname, self.blacklist):
                 if self.dot_fp:
                     self._graph_blacklisted_dependency(binary, soname)
+                else:
+                    printerr("Skipping blacklisted {}".format(soname))
                 continue
 
             if self.dot_fp:
@@ -155,7 +157,9 @@ class App:
                 continue
             self.processed_sonames.add(soname)
             path = self.path_for_binary[soname]
-            if not self.dry_run:
+            if self.dry_run:
+                printerr("Would copy {} to {}".format(path, self.destdir))
+            else:
                 copy(path, self.destdir)
             self._traverse_tree(soname)
 
