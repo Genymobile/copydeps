@@ -32,10 +32,10 @@ directory, run:
 
 The list probably includes way too many libraries you can assume to be
 installed on the destination system. To tell copydeps to ignore them, create a
-blacklist file (you can have a look at `blacklist.sample` for inspiration) and
-run it like this:
+exclude list file (you can have a look at `exclude-list.sample` for
+inspiration) and run it like this:
 
-    copydeps --exclude your/blacklist /path/to/foo -d .
+    copydeps --exclude your/exclude-list /path/to/foo -d .
 
 ### Analyzing dependencies
 
@@ -43,7 +43,7 @@ You can tell copydeps to generate a dependency diagram using the `--dot`
 option.  If you just want to look at the dependency diagram, add the
 `--dry-run` option to prevent copying:
 
-    copydeps --exclude your/blacklist /path/to/foo --dry-run --dot foo.dot
+    copydeps --exclude your/exclude-list /path/to/foo --dry-run --dot foo.dot
 
 You can now view the diagram using any Graphviz viewer, such as [xdot][].
 

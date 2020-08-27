@@ -14,18 +14,18 @@ __version__ = '1.1.0'
 
 DESCRIPTION = """\
 Copy dependencies required by an executable to the specified dir. Dependencies
-can be blacklisted. If a library is blacklisted then all its dependencies are
-blacklisted unless a non-blacklisted library depend on them.
+can be excluded. If a library is excluded then all its dependencies are
+excluded unless a non-excluded library depend on them.
 
 Can be used to inspect the dependencies of an executable through the generated
 dependency graph.
 """
 
-# Black list Linux dynamic loaders by default because they do not fit in the
+# Skip Linux dynamic loaders by default because they do not fit in the
 # soname => path output of ldd
-DEFAULT_BLACKLIST = ['ld-linux.so.*', 'ld-linux-x86-64.so.*']
+DEFAULT_EXCLUDE_LIST = ['ld-linux.so.*', 'ld-linux-x86-64.so.*']
 
-DOT_BLACKLISTED_ATTRS = '[color="gray" fontcolor="gray"]'
+DOT_EXCLUDED_ATTRS = '[color="gray" fontcolor="gray"]'
 
 
 class MissingLibrariesError(Exception):
@@ -38,7 +38,7 @@ def printerr(*args, **kwargs):
     print(*args, **kwargs)
 
 
-def load_blacklist(filename):
+def load_exclude_list(filename):
     with open(filename, 'rt') as f:
         for line in f.readlines():
             line = line.strip()
@@ -105,9 +105,9 @@ def list_dependencies(binary):
                 yield tag.needed
 
 
-def is_blacklisted(dependency, blacklist):
+def is_excluded(dependency, exclude_list):
     name = os.path.basename(dependency)
-    for pattern in blacklist:
+    for pattern in exclude_list:
         if fnmatch.fnmatch(name, pattern):
             return True
     return False
@@ -121,11 +121,11 @@ def copy(dependency, destdir):
 
 
 class App:
-    def __init__(self, blacklist, destdir, dry_run, dot_fp=None):
+    def __init__(self, exclude_list, destdir, dry_run, dot_fp=None):
         self.path_for_binary = {}
         self.destdir = destdir
         self.dry_run = dry_run
-        self.blacklist = blacklist
+        self.exclude_list = exclude_list
         self.processed_sonames = set()
         self.dot_fp = dot_fp
 
@@ -143,11 +143,11 @@ class App:
         path = self.path_for_binary[binary]
         sonames = list_dependencies(path)
         for soname in sonames:
-            if is_blacklisted(soname, self.blacklist):
+            if is_excluded(soname, self.exclude_list):
                 if self.dot_fp:
-                    self._graph_blacklisted_dependency(binary, soname)
+                    self._graph_excluded_dependency(binary, soname)
                 else:
-                    printerr("Skipping blacklisted {}".format(soname))
+                    printerr("Skipping {}".format(soname))
                 continue
 
             if self.dot_fp:
@@ -163,10 +163,10 @@ class App:
                 copy(path, self.destdir)
             self._traverse_tree(soname)
 
-    def _graph_blacklisted_dependency(self, binary, soname):
-        self.dot_fp.write('  "{}" {};\n'.format(soname, DOT_BLACKLISTED_ATTRS))
+    def _graph_excluded_dependency(self, binary, soname):
+        self.dot_fp.write('  "{}" {};\n'.format(soname, DOT_EXCLUDED_ATTRS))
         self.dot_fp.write('  "{}" -> "{}" {};\n'
-                          .format(binary, soname, DOT_BLACKLISTED_ATTRS))
+                          .format(binary, soname, DOT_EXCLUDED_ATTRS))
 
     def _graph_dependency(self, binary, soname):
         self.dot_fp.write('  "{}" -> "{}";\n'.format(binary, soname))
@@ -195,11 +195,11 @@ def main():
 
     args = parser.parse_args()
 
-    blacklist = DEFAULT_BLACKLIST
+    exclude_list = DEFAULT_EXCLUDE_LIST
     if args.exclude:
         if not os.path.isfile(args.exclude):
             parser.error('"{}" is not a file'.format(args.exclude))
-        blacklist.extend(load_blacklist(args.exclude))
+        exclude_list.extend(load_exclude_list(args.exclude))
 
     if args.destdir and not os.path.isdir(args.destdir):
         parser.error('"{}" is not a directory'.format(args.destdir))
@@ -221,7 +221,7 @@ def main():
             parser.error('Failed to write to "{}": {}'.format(args.dot, exc))
 
     exit_code = 0
-    app = App(blacklist=blacklist, destdir=destdir, dry_run=args.dry_run,
+    app = App(exclude_list=exclude_list, destdir=destdir, dry_run=args.dry_run,
               dot_fp=dot_fp)
     try:
         app.run(args.executable)
