@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.1 - 2020.08.27
+
+- Exit with 1 if copydeps fails to copy a library
+- Do not use the "blacklist" term in the code, doc or filenames
+- Improve --dry-run output: print the name of included and excluded libraries
+- Setup continuous integration using GitHub actions
+
 ## 1.1.0 - 2019.02.13
 
 - Use pyelftools instead of parsing `readelf` output
