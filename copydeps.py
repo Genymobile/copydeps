@@ -156,12 +156,13 @@ class App:
             if soname in self.processed_sonames:
                 continue
             self.processed_sonames.add(soname)
-            path = self.path_for_binary[soname]
-            if self.dry_run:
-                printerr("Would copy {} to {}".format(path, self.destdir))
-            else:
-                copy(path, self.destdir)
-            self._traverse_tree(soname)
+            if soname in self.path_for_binary:
+                path = self.path_for_binary[soname]
+                if self.dry_run:
+                    printerr("Would copy {} to {}".format(path, self.destdir))
+                else:
+                    copy(path, self.destdir)
+                self._traverse_tree(soname)
 
     def _graph_excluded_dependency(self, binary, soname):
         self.dot_fp.write('  "{}" {};\n'.format(soname, DOT_EXCLUDED_ATTRS))
